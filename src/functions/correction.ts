@@ -17,10 +17,6 @@ export const correction = {
     // Paradox prefix variations → "Paradox"
     "§2[§7Paradox§2]§o§7": "Paradox",
     "§2[§7Member§2]": "Member",
-
-    // Scythe prefix (removed entirely)
-    "§r§6[§aScythe§6]§r": "Scythe",
-
     // ─────────────────────────────────────────────
     // Minecraft formatting code stripping
     // ─────────────────────────────────────────────

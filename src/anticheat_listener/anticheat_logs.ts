@@ -7,7 +7,7 @@ export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
     bot.on("text", (packet: WhisperPacket | ChatPacket) => {
         const message = packet.message;
 
-        const isAntiCheatMessage = message.includes("§r§6[§aScythe§6]§r") || message.includes("§2[§7Available Commands§2]§r") || message.includes("§2[§7Paradox§2]§o§7");
+        const isAntiCheatMessage = message.includes("§2[§7Available Commands§2]§r") || message.includes("§2[§7Paradox§2]§o§7");
 
         if (!isAntiCheatMessage) {
             return;
@@ -17,9 +17,6 @@ export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
         let antiCheatMsg;
         let correctedText;
         if (rawText.includes("§2[§7Available Commands§2]§r") || rawText.includes("§2[§7Paradox§2]§o§7")) {
-            antiCheatMsg = rawText;
-            correctedText = autoCorrect(antiCheatMsg, correction);
-        } else if (rawText.startsWith("§r§6[§aScythe§6]§r")) {
             antiCheatMsg = rawText;
             correctedText = autoCorrect(antiCheatMsg, correction);
         }

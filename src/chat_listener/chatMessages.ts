@@ -23,7 +23,7 @@ export function setupChatMessageListener(bot: Client, channelId: TextChannel) {
             }
 
             // Known AntiCheat / help / command messages to ignore
-            const ignoredPrefixes = ["§r§6[§aScythe§6]§r", "§2[§7Available Commands§2]§r", "§2[§7Paradox§2]§o§7"];
+            const ignoredPrefixes = ["§2[§7Available Commands§2]§r", "§2[§7Paradox§2]§o§7"];
 
             if (ignoredPrefixes.some((prefix) => text.includes(prefix))) {
                 return;
