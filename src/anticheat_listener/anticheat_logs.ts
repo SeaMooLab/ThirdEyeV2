@@ -1,7 +1,6 @@
 import { EmbedBuilder, MessageCreateOptions, MessagePayload, TextChannel } from "discord.js";
 import config from "../config.js";
-import { autoCorrect } from "../main.js";
-import { correction } from "../main.js";
+import { autoCorrect, correction } from "../functions/correction.js";
 import { Client } from "bedrock-protocol";
 let thumbUrl: string;
 export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
