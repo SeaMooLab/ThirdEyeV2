@@ -7,16 +7,7 @@ export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
     bot.on("text", (packet: WhisperPacket | ChatPacket) => {
         const message = packet.message;
 
-        const isAntiCheatMessage =
-            message.includes("§r§4[§6Paradox§4]§r") ||
-            message.includes("§r§6[§aScythe§6]§r") ||
-            message.includes("§l§6[§4Paradox§6]§r") ||
-            message.includes("§l§6[§4Paradox AntiCheat Command Help§6]") ||
-            message.includes("§2[§7Available Commands§2]§r") ||
-            message.includes("§2[§7Paradox§2]§o§7") ||
-            message.includes("§f§o§4[§6Paradox§4]§f§o") ||
-            message.includes("§f§4[§6Paradox§4]§f") ||
-            message.includes("§l§o§6[§4Paradox AntiCheat Command Help§6]§r§o");
+        const isAntiCheatMessage = message.includes("§r§6[§aScythe§6]§r") || message.includes("§2[§7Available Commands§2]§r") || message.includes("§2[§7Paradox§2]§o§7");
 
         if (!isAntiCheatMessage) {
             return;
@@ -25,16 +16,7 @@ export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
         const rawText = obj.rawtext[0]?.text || "";
         let antiCheatMsg;
         let correctedText;
-        if (
-            rawText.includes("§r§4[§6Paradox§4]§r") ||
-            rawText.includes("§l§6[§4Paradox§6]§r") ||
-            rawText.includes("§l§6[§4Paradox AntiCheat Command Help§6]") ||
-            rawText.includes("§2[§7Available Commands§2]§r") ||
-            rawText.includes("§2[§7Paradox§2]§o§7") ||
-            rawText.includes("§f§o§4[§6Paradox§4]§f§o") ||
-            rawText.includes("§f§4[§6Paradox§4]§f") ||
-            rawText.includes("§l§o§6[§4Paradox AntiCheat Command Help§6]§r§o")
-        ) {
+        if (rawText.includes("§2[§7Available Commands§2]§r") || rawText.includes("§2[§7Paradox§2]§o§7")) {
             antiCheatMsg = rawText;
             correctedText = autoCorrect(antiCheatMsg, correction);
         } else if (rawText.startsWith("§r§6[§aScythe§6]§r")) {
