@@ -11,7 +11,7 @@ export default {
     antiCheatEnabled: true,
     antiCheatLogsChannel: "",
     cmdPrefix: "!",
-    useSystemPlayerJoinMessage: false,
+    useSystemPlayerJoinMessage: true,
     logSystemCommands: false,
     systemCommandsChannel: "",
     sendWhisperMessages: false,
@@ -33,4 +33,6 @@ export default {
     logBadActors: true,
     //New logo image if you dont like it feel free to change it.
     logoURL: "https://i.imgur.com/XfoZ8XS.jpg",
+    //Name of the role that can use the /servercommand command, this is used to run command on the Minecaft server from discord.
+    operatorsRole: "Operators",
 };
