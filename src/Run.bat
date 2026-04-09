@@ -1,2 +1,2 @@
-node start.js
+node shard.js
 pause

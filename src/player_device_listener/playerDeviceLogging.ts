@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { Client } from "bedrock-protocol";
-import { EmbedBuilder, TextChannel } from "discord.js";
+import { TextChannel } from "discord.js";
 import config from "../config.js";
-import { runCMD } from "../index.js";
+import { runCMD } from "../functions/bedrock.js";
 import chalk from "chalk";
+import { createEmbed } from "../functions/embedBuilder.js";
 
 // ----------------------------
 // Config
@@ -69,36 +70,78 @@ function getDeviceName(deviceOS: string): string {
 export function addPlayerListener(bot: Client, channelId: TextChannel, WhitelistRead: any) {
     const Whitelist = WhitelistRead.whitelist;
     let reportedPlayers = loadReportedPlayers();
+    console.log(chalk.cyan("Player Device Listener Initialized."));
 
     // ----------------------------
-    // Player Join / Add
+    // add_player packet is not reliable for player joins as it is not sent if the joining player is out of the bots render distance.
+    // Thefore this is disabled by default.
     // ----------------------------
-    bot.on("add_player", (packet: PlayerData) => {
-        reportedPlayers = loadReportedPlayers();
-        const username = packet.username;
+    if (config.useSystemPlayerJoinMessage === false) {
+        bot.on("add_player", (packet: PlayerData) => {
+            reportedPlayers = loadReportedPlayers();
+            const username = packet.username;
 
-        // Skip if already reported
-        if (reportedPlayers.includes(username)) return;
+            // Skip if already reported
+            if (reportedPlayers.includes(username)) return;
 
-        reportedPlayers.push(username);
-        saveReportedPlayers(reportedPlayers);
+            reportedPlayers.push(username);
+            saveReportedPlayers(reportedPlayers);
 
-        const deviceOS = getDeviceName(packet.device_os);
-        let description = `[In Game] ${username}: Has joined the server using ${deviceOS}`;
+            const deviceOS = getDeviceName(packet.device_os);
+            let description = `[In Game] ${username}: Has joined the server using ${deviceOS}`;
 
-        // Kick blacklisted devices
-        if (config.blacklistDeviceTypes.includes(packet.device_os) && !Whitelist.includes(username)) {
-            const cmd = `/kick ${username} device is blacklisted.`;
-            runCMD(cmd);
-            description = `[Server] ${username}: Kicked as device is blacklisted (${packet.device_os})`;
-        }
+            // Kick blacklisted devices
+            if (config.blacklistDeviceTypes.includes(packet.device_os) && !Whitelist.includes(username)) {
+                const cmd = `/kick ${username} device is blacklisted.`;
+                runCMD(cmd);
+                description = `[Server] ${username}: Kicked as device is blacklisted (${packet.device_os})`;
+            }
 
-        //Discord output
-        if (config.useEmbed) {
-            const msgEmbed = new EmbedBuilder().setColor([0, 255, 0]).setTitle(config.setTitle).setDescription(description).setAuthor({ name: "‎", iconURL: config.logoURL });
-            sendToChannel(channelId, { embeds: [msgEmbed] }, "addPlayerListener:add_player: Could not find the Discord channel.");
-        } else {
-            sendToChannel(channelId, description, "addPlayerListener:add_player: Could not find the Discord channel.");
+            //Discord output
+            if (config.useEmbed) {
+                const embed = createEmbed({
+                    title: config.setTitle,
+                    description: description,
+                    color: [0, 255, 0],
+                });
+
+                sendToChannel(channelId, { embeds: [embed] }, "addPlayerListener:add_player: Could not find the Discord channel.");
+            } else {
+                sendToChannel(channelId, description, "addPlayerListener:add_player: Could not find the Discord channel.");
+            }
+        });
+    }
+    bot.on("text", (packet: WhisperPacket | ChatPacket) => {
+        if (packet.message.includes("§e%multiplayer.player.joined")) {
+            /* we don't want to duplicate the join message as this is handled in the add_player packet.
+           not this is only tirggered if the bot is in render distace as the playe rjoining soits not always triggered.
+           */
+            if (config.useSystemPlayerJoinMessage === true) {
+                const msg = packet.parameters + ": Has joined the server.";
+                const username = "Server";
+                if (config.useEmbed === true) {
+                    const embed = createEmbed({
+                        title: config.setTitle,
+                        description: "[In Game] " + username + ": " + msg,
+                        color: [0, 255, 0],
+                        author: { name: "‎", iconURL: config.logoURL },
+                    });
+
+                    if (typeof channelId === "object") {
+                        return channelId.send({ embeds: [embed] });
+                    } else {
+                        return console.log("I could not find the in-game channel in Discord. 16");
+                    }
+                } else {
+                    if (typeof channelId === "object") {
+                        return channelId.send(`[In Game] **${username}**: ${msg}`);
+                    } else {
+                        return console.log("I could not find the in-game channel in Discord. 17");
+                    }
+                }
+            }
+            //if not enabled it wont be sent.
+            return;
         }
     });
 
@@ -122,13 +165,14 @@ export function addPlayerListener(bot: Client, channelId: TextChannel, Whitelist
 
         // Discord output
         if (config.useEmbed) {
-            const msgEmbed = new EmbedBuilder()
-                .setColor([255, 0, 0])
-                .setTitle(config.setTitle)
-                .setDescription("[In Game] " + msg)
-                .setAuthor({ name: "‎", iconURL: config.logoURL });
+            const embed = createEmbed({
+                title: config.setTitle,
+                description: "[In Game] " + msg,
+                color: [255, 0, 0],
+                author: { name: "‎", iconURL: config.logoURL },
+            });
 
-            sendToChannel(channelId, { embeds: [msgEmbed] }, "Could not find the Discord channel.");
+            sendToChannel(channelId, { embeds: [embed] }, "Could not find the Discord channel.");
         } else {
             sendToChannel(channelId, `[In Game] **Server**: ${msg}`, "Could not find the Discord channel.");
         }

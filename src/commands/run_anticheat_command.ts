@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, GuildMember } from "discord.js";
 
 import config from "../config.js";
-import { runText } from "../index.js";
+import { runText } from "../functions/bedrock.js";
 
 export default {
     data: new SlashCommandBuilder()

@@ -1,12 +1,15 @@
-import { EmbedBuilder, TextChannel } from "discord.js";
+import { TextChannel } from "discord.js";
 import { Client } from "bedrock-protocol";
 import config from "../config.js";
 import { autoCorrect, correction } from "../functions/correction.js";
+import { createEmbed } from "../functions/embedBuilder.js";
+import chalk from "chalk";
 
 export function setupChatMessageListener(bot: Client, channelId: TextChannel) {
+    console.log(chalk.cyan("Chat Message Listener initialized."));
     bot.on("text", (packet: JsonPacket | ChatPacket) => {
         if (!channelId || typeof channelId !== "object") {
-            console.log("chatMessage: I could not find the in-game channel in Discord.");
+            console.log(chalk.red("chatMessage: I could not find the in-game channel in Discord."));
             return;
         }
 
@@ -50,7 +53,12 @@ function sendToDiscord(channelId: TextChannel, content: string) {
         return channelId.send(content);
     }
 
-    const embed = new EmbedBuilder().setColor(config.setColor).setTitle(config.setTitle).setDescription(content).setAuthor({ name: "‎", iconURL: config.logoURL });
+    const embed = createEmbed({
+        title: config.setTitle,
+        description: content,
+        color: config.setColor,
+        author: { name: "‎", iconURL: config.logoURL },
+    });
 
     return channelId.send({ embeds: [embed] });
 }

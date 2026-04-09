@@ -1,9 +1,12 @@
-import { EmbedBuilder, MessageCreateOptions, MessagePayload, TextChannel } from "discord.js";
+import { MessageCreateOptions, MessagePayload, TextChannel } from "discord.js";
 import config from "../config.js";
 import { autoCorrect, correction } from "../functions/correction.js";
 import { Client } from "bedrock-protocol";
+import { createEmbed } from "../functions/embedBuilder.js";
+import chalk from "chalk";
 let thumbUrl: string;
 export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
+    console.log(chalk.cyan("AntiCheat Listener initialized."));
     bot.on("text", (packet: WhisperPacket | ChatPacket) => {
         const message = packet.message;
 
@@ -38,12 +41,13 @@ export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
                     const messages = [moderationMessage, optionalFeaturesMessage, toolsUtilitiesMessage];
 
                     messages.forEach((msg) => {
-                        const embed = new EmbedBuilder()
-                            .setColor(config.setColor)
-                            .setTitle(config.setTitle)
-                            .setDescription("[In Game] " + msg)
-                            .setAuthor({ name: "‎", iconURL: config.logoURL })
-                            .setThumbnail(thumbUrl);
+                        const embed = createEmbed({
+                            title: config.setTitle,
+                            description: "[In Game] " + msg,
+                            color: config.setColor,
+                            author: { name: "‎", iconURL: config.logoURL },
+                            thumbnailUrl: thumbUrl,
+                        });
 
                         if (typeof channelId === "object") {
                             channelId.send({ embeds: [embed] });
@@ -77,12 +81,13 @@ export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
                         break;
                 }
 
-                const embed = new EmbedBuilder()
-                    .setColor(config.setColor)
-                    .setTitle(config.setTitle)
-                    .setDescription("[In Game] " + correctedText)
-                    .setAuthor({ name: "‎", iconURL: config.logoURL })
-                    .setThumbnail(thumbUrl);
+                const embed = createEmbed({
+                    title: config.setTitle,
+                    description: "[In Game] " + correctedText,
+                    color: config.setColor,
+                    author: { name: "‎", iconURL: config.logoURL },
+                    thumbnailUrl: thumbUrl,
+                });
 
                 sendToChannel(channelId, { embeds: [embed] }, "I could not find the in-game channel in Discord. 2");
             } else {

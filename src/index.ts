@@ -7,8 +7,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { pathToFileURL } from "url";
 import { Command } from "./functions/interface.js";
-import { Client, Collection, EmbedBuilder, GatewayIntentBits, Guild, Interaction, SlashCommandBuilder, TextChannel } from "discord.js";
-import { createClient, ClientOptions } from "bedrock-protocol";
+import { Client, Collection, GatewayIntentBits, Guild, Interaction, SlashCommandBuilder, TextChannel } from "discord.js";
 import config from "./config.js";
 import { idList } from "./badActors.js";
 import { addPlayerListener } from "./player_device_listener/playerDeviceLogging.js";
@@ -18,6 +17,8 @@ import { setupVoiceChatListener } from "./voiceChat_listener/voice_channels.js";
 import { checkAndDeleteEmptyChannels } from "./voiceChat_listener/voiceChatCleanUp.js";
 import { setupAntiCheatListener } from "./anticheat_listener/anticheat_logs.js";
 import { setupSystemCommandsListener } from "./server_commands_listener/serverCommandsLogging.js";
+import { createEmbed } from "./functions/embedBuilder.js";
+import { initBedrock, runCMD } from "./functions/bedrock.js";
 
 // ─────────────────────────────────────────────
 // Constants & State
@@ -32,39 +33,14 @@ const systemCommandsChannel: string = config.systemCommandsChannel;
 let systemCommandsChannelId: TextChannel;
 
 let WhitelistRead = JSON.parse(fs.readFileSync("whitelist.json", "utf-8"));
-let options;
 
-console.log(chalk.cyan("ThirdEye v2.0.0 Starting..."));
-
-// ─────────────────────────────────────────────
-// Bedrock Client Options
-// ─────────────────────────────────────────────
-
-if (config.isRealm) {
-    //Handel the realm config here!
-    console.log(chalk.yellow("Connecting to a realm"));
-    options = {
-        profilesFolder: "authentication_tokens",
-        realms: {
-            realmInvite: config.realmInviteCode,
-        },
-    } as ClientOptions;
-} else {
-    console.log(chalk.yellow("Connecting to a server"));
-    options = {
-        host: config.ip,
-        port: config.port,
-        username: config.username,
-        offline: config.AuthType,
-        profilesFolder: "authentication_tokens",
-    } as ClientOptions;
-}
+console.log(chalk.yellow("ThirdEye v2.0.0 Starting..."));
 
 // ─────────────────────────────────────────────
-// Join Minecraft Server
+// Initialize Bedrock Client
 // ─────────────────────────────────────────────
-
-const bot = createClient(options);
+console.log(chalk.cyan("intializing Bedrock client..."));
+const bot = initBedrock();
 
 // ─────────────────────────────────────────────
 // Discord Client Setup
@@ -87,7 +63,7 @@ client.login(config.token);
 // ─────────────────────────────────────────────
 client.once("clientReady", () => {
     const shardId = client.shard?.ids[0] ?? 0;
-    console.log(chalk.green(`ThirdEye logged in as ${client.user.tag} | Shard ${shardId}`));
+    console.log(chalk.green(`ThirdEye logged in as ${client.user?.tag} | Shard ${shardId}`));
     const channelObj = client.channels.cache.get(channel);
     //Listerns that use the main public ingame channel.
     if (channelObj) {
@@ -101,7 +77,7 @@ client.once("clientReady", () => {
     }
     const guild = client.guilds.cache.get(config.guild);
     if (guild) {
-        console.log(`Found guild: ${guild.name}`);
+        console.log(chalk.cyan`Found guild: ${guild.name}`);
         setupVoiceChatListener(bot, guild as Guild);
     } else {
         console.error(`Guild with ID ${config.guild} not found.`);
@@ -149,13 +125,14 @@ client.on("messageCreate", (message) => {
                 cmd = `/tellraw @a {"rawtext":[{"text":"§8[§9Discord§8] §4${message.author.username} (Known Hacker/Troll) : §f${message.content}"}]}`;
                 //If configured Log the message to anticheat channel.
                 if (config.logBadActors === true) {
-                    const msgEmbed = new EmbedBuilder()
-                        .setColor(config.setColor)
-                        .setTitle(config.setTitle)
-                        .setDescription("Message sent to the bot from Discord from Author: " + message.author.username + " Content: " + message.content + " Unique ID: " + message.author.id)
-                        .setAuthor({ name: "‎", iconURL: config.logoURL })
-                        .setThumbnail("https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/76/Impulse_Command_Block.gif/revision/latest?cb=20191017044126");
-                    anticheatChannelId.send({ embeds: [msgEmbed] });
+                    const embed = createEmbed({
+                        title: config.setTitle,
+                        description: "Message sent to the bot from Discord from Author: " + message.author.username + " Content: " + message.content + " Unique ID: " + message.author.id,
+                        color: config.setColor,
+                        author: { name: "‎", iconURL: config.logoURL },
+                        thumbnailUrl: "https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/76/Impulse_Command_Block.gif/revision/latest?cb=20191017044126",
+                    });
+                    anticheatChannelId.send({ embeds: [embed] });
                 }
             } else {
                 //We will then send a command to the server to trigger the message sent in discord.
@@ -187,6 +164,7 @@ for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
     const commandModule = await import(pathToFileURL(filePath).href);
     const command: Command = commandModule.default;
+    console.log(chalk.blue(`Loaded command: ${command.data.name}`));
 
     // Add to memory for handling interactions
     client.commands.set(command.data.name, command);
@@ -200,11 +178,11 @@ for (const file of commandFiles) {
 // ─────────────────────────────────────────────
 if (client.application) {
     await client.application.commands.set(commands.map((c) => c.toJSON()));
-    console.log("✅ Slash commands registered");
+    console.log(chalk.green("✅ Slash commands registered"));
 } else {
     client.once("clientReady", async () => {
         await client.application?.commands.set(commands.map((c) => c.toJSON()));
-        console.log("✅ Slash commands registered");
+        console.log(chalk.green("✅ Slash commands registered"));
     });
 }
 
@@ -225,34 +203,3 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         }
     }
 });
-
-client.login(process.env.DISCORD_TOKEN);
-
-export function runCMD(cmd: string) {
-    bot.queue("command_request", {
-        command: cmd,
-        origin: {
-            type: "player",
-            uuid: "",
-            request_id: "",
-            player_entity_id: [0, 0],
-        },
-        internal: false,
-        version: "latest",
-    });
-}
-export function runText(message: string) {
-    bot.queue("text", {
-        needs_translation: false,
-        category: "authored",
-        chat: "chat",
-        whisper: "whisper",
-        announcement: "announcement",
-        type: "chat",
-        source_name: config.username,
-        message: message,
-        xuid: "",
-        platform_chat_id: "",
-        has_filtered_message: false,
-    });
-}

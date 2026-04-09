@@ -1,8 +1,11 @@
-import { EmbedBuilder, TextChannel } from "discord.js";
+import { TextChannel } from "discord.js";
 import config from "../config.js";
 import { Client } from "bedrock-protocol";
+import { createEmbed } from "../functions/embedBuilder.js";
+import chalk from "chalk";
 
 export function setupDeathListener(bot: Client, channelId: TextChannel) {
+    console.log(chalk.cyan("Player Death Listener Initialized."));
     bot.on("text", (packet) => {
         if (packet.message.includes("death")) {
             let playername = packet.parameters[0];
@@ -86,13 +89,14 @@ function getMobDeathReason(entity: string): string {
 
 function sendDeathMessage(channelId: TextChannel, playername: string, reason: string) {
     if (config.useEmbed === true) {
-        const msgEmbed = new EmbedBuilder()
-            .setColor(config.setColor)
-            .setTitle(config.setTitle)
-            .setDescription("[In Game] " + playername + ": " + reason)
-            .setAuthor({ name: "‎", iconURL: config.logoURL });
+        const embed = createEmbed({
+            title: config.setTitle,
+            description: "[In Game] " + playername + ": " + reason,
+            color: config.setColor,
+        });
+
         if (typeof channelId === "object") {
-            channelId.send({ embeds: [msgEmbed] });
+            channelId.send({ embeds: [embed] });
         } else {
             console.log("I could not find the in-game channel in Discord.");
         }

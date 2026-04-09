@@ -4,7 +4,7 @@ import { createClient, ClientOptions } from "bedrock-protocol";
 import config from "./config.js";
 import { setupDeathListener } from "./death_listener/deathMessage.js";
 import { addPlayerListener } from "./player_device_listener/playerDeviceLogging.js";
-import { setupSystemCommandsListener } from "./system_commands_listener/systemCommandsLogging.js";
+import { setupSystemCommandsListener } from "./server_commands_listener/serverCommandsLogging.js";
 import { setupVoiceChatListener } from "./voiceChat_listener/voiceChat.js";
 import { checkAndDeleteEmptyChannels } from "./voiceChat_listener/voiceChatCleanUp.js";
 import { setupAntiCheatListener } from "./anticheat_listener/anticheat_logs.js";
@@ -449,7 +449,6 @@ bot.on("text", (packet: WhisperPacket | ChatPacket) => {
         return;
     }
 });
-
 //grab the records of players online till we find the bot and then set the clientEntityID.
 bot.on("player_list", (packet) => {
     if (packet.records && packet.records.records && packet.records.records.length > 0) {
