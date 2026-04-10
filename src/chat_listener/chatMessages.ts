@@ -5,9 +5,9 @@ import { autoCorrect, correction } from "../functions/correction.js";
 import { createEmbed } from "../functions/embedBuilder.js";
 import chalk from "chalk";
 
-export function setupChatMessageListener(bot: Client, channelId: TextChannel) {
+export function setupChatMessageListener(bedrockClient: Client, channelId: TextChannel) {
     console.log(chalk.cyan("Chat Message Listener initialized."));
-    bot.on("text", (packet: JsonPacket | ChatPacket) => {
+    bedrockClient.on("text", (packet: JsonPacket | ChatPacket) => {
         if (!channelId || typeof channelId !== "object") {
             console.log(chalk.red("chatMessage: I could not find the in-game channel in Discord."));
             return;

@@ -1,7 +1,7 @@
 import { ChannelType, Guild, GuildMember, PermissionsBitField } from "discord.js";
 import { Client } from "bedrock-protocol";
 import config from "../config.js";
-import { runCMD } from "../functions/bedrock.js";
+import { runCMD } from "../bedrock/bedrock.js";
 
 export function setupVoiceChatListener(bot: Client, guild: Guild) {
     bot.on("text", async (packet) => {

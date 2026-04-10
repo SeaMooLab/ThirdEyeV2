@@ -5,9 +5,9 @@ import { Client } from "bedrock-protocol";
 import { createEmbed } from "../functions/embedBuilder.js";
 import chalk from "chalk";
 let thumbUrl: string;
-export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
+export function setupAntiCheatListener(bedrockClient: Client, channelId: TextChannel) {
     console.log(chalk.cyan("AntiCheat Listener initialized."));
-    bot.on("text", (packet: WhisperPacket | ChatPacket) => {
+    bedrockClient.on("text", (packet: WhisperPacket | ChatPacket) => {
         const message = packet.message;
 
         const isAntiCheatMessage = message.includes("§2[§7Available Commands§2]§r") || message.includes("§2[§7Paradox§2]§o§7");

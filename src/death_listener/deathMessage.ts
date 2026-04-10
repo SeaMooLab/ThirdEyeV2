@@ -4,9 +4,9 @@ import { Client } from "bedrock-protocol";
 import { createEmbed } from "../functions/embedBuilder.js";
 import chalk from "chalk";
 
-export function setupDeathListener(bot: Client, channelId: TextChannel) {
+export function setupDeathListener(bedrockClient: Client, channelId: TextChannel) {
     console.log(chalk.cyan("Player Death Listener Initialized."));
-    bot.on("text", (packet) => {
+    bedrockClient.on("text", (packet) => {
         if (packet.message.includes("death")) {
             let playername = packet.parameters[0];
 

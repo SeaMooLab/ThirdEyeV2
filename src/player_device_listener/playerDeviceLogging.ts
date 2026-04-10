@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { Client } from "bedrock-protocol";
 import { TextChannel } from "discord.js";
 import config from "../config.js";
-import { runCMD } from "../functions/bedrock.js";
+import { runCMD } from "../bedrock/bedrock.js";
 import chalk from "chalk";
 import { createEmbed } from "../functions/embedBuilder.js";
 
@@ -67,7 +67,7 @@ function getDeviceName(deviceOS: string): string {
 // ----------------------------
 // Main: Add player listener
 // ----------------------------
-export function addPlayerListener(bot: Client, channelId: TextChannel, WhitelistRead: any) {
+export function addPlayerListener(bedrockClient: Client, channelId: TextChannel, WhitelistRead: any) {
     const Whitelist = WhitelistRead.whitelist;
     let reportedPlayers = loadReportedPlayers();
     console.log(chalk.cyan("Player Device Listener Initialized."));
@@ -77,7 +77,7 @@ export function addPlayerListener(bot: Client, channelId: TextChannel, Whitelist
     // Thefore this is disabled by default.
     // ----------------------------
     if (config.useSystemPlayerJoinMessage === false) {
-        bot.on("add_player", (packet: PlayerData) => {
+        bedrockClient.on("add_player", (packet: PlayerData) => {
             reportedPlayers = loadReportedPlayers();
             const username = packet.username;
 
@@ -111,7 +111,7 @@ export function addPlayerListener(bot: Client, channelId: TextChannel, Whitelist
             }
         });
     }
-    bot.on("text", (packet: WhisperPacket | ChatPacket) => {
+    bedrockClient.on("text", (packet: WhisperPacket | ChatPacket) => {
         if (packet.message.includes("§e%multiplayer.player.joined")) {
             /* we don't want to duplicate the join message as this is handled in the add_player packet.
            not this is only tirggered if the bot is in render distace as the playe rjoining soits not always triggered.
@@ -148,7 +148,7 @@ export function addPlayerListener(bot: Client, channelId: TextChannel, Whitelist
     // ----------------------------
     // Player Leave
     // ----------------------------
-    bot.on("text", (packet: WhisperPacket | ChatPacket) => {
+    bedrockClient.on("text", (packet: WhisperPacket | ChatPacket) => {
         if (!packet.message.includes("§e%multiplayer.player.left")) return;
         reportedPlayers = loadReportedPlayers();
 

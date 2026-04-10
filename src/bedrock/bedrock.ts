@@ -2,7 +2,7 @@ import { createClient, ClientOptions, Client } from "bedrock-protocol";
 import config from "../config.js";
 import { registerBedrockListeners } from "./bedrock_packet_listeners.js";
 
-let bot: Client;
+let bedrockClient: Client;
 
 export function initBedrock(): Client {
     let options: ClientOptions;
@@ -23,14 +23,14 @@ export function initBedrock(): Client {
         };
     }
 
-    bot = createClient(options);
-    registerBedrockListeners(bot);
-    return bot;
+    bedrockClient = createClient(options);
+    registerBedrockListeners(bedrockClient);
+    return bedrockClient;
 }
 
 // shared functions
 export function runCMD(cmd: string) {
-    bot.queue("command_request", {
+    bedrockClient.queue("command_request", {
         command: cmd,
         origin: {
             type: "player",
@@ -44,7 +44,7 @@ export function runCMD(cmd: string) {
 }
 
 export function runText(message: string) {
-    bot.queue("text", {
+    bedrockClient.queue("text", {
         needs_translation: false,
         category: "authored",
         chat: "chat",
@@ -60,6 +60,6 @@ export function runText(message: string) {
 }
 
 // optional getter (useful later)
-export function getBot(): Client {
-    return bot;
+export function getBedrockClient(): Client {
+    return bedrockClient;
 }
