@@ -1,10 +1,23 @@
 import { createClient, ClientOptions, Client } from "bedrock-protocol";
 import config from "../config.js";
 import { registerBedrockListeners } from "./bedrock_packet_listeners.js";
+import { registerAccountLinkListener } from "./account_link_listener.js";
+import chalk from "chalk";
+import { bindAllListeners } from "../discord/bedrock_listener_manager.js";
 
 let bedrockClient: Client;
+let reconnecting = false;
 
 export function initBedrock(): Client {
+    const client = createNewClient();
+    bedrockClient = client;
+    return client;
+}
+
+// ─────────────────────────────────────────────
+// Client factory
+// ─────────────────────────────────────────────
+function createNewClient(): Client {
     let options: ClientOptions;
 
     if (config.isRealm) {
@@ -12,7 +25,7 @@ export function initBedrock(): Client {
             username: config.username,
             profilesFolder: "authentication_tokens",
             realms: { realmInvite: config.realmInviteCode },
-        } as unknown as ClientOptions; // cast only here
+        } as unknown as ClientOptions;
     } else {
         options = {
             host: config.ip,
@@ -23,12 +36,44 @@ export function initBedrock(): Client {
         };
     }
 
-    bedrockClient = createClient(options);
-    registerBedrockListeners(bedrockClient);
-    return bedrockClient;
+    const client = createClient(options);
+
+    registerBedrockListeners(client);
+    registerAccountLinkListener(client);
+
+    return client;
 }
 
-// shared functions
+// ─────────────────────────────────────────────
+// Reconnect system
+// ─────────────────────────────────────────────
+export function reconnectBedrock() {
+    if (reconnecting) return;
+    reconnecting = true;
+
+    console.log(chalk.cyan("[BEDROCK] Reconnecting in 5 seconds..."));
+
+    setTimeout(() => {
+        try {
+            if (bedrockClient) {
+                bedrockClient.close();
+            }
+
+            console.log(chalk.cyan("[BEDROCK] Reconnecting now..."));
+
+            bedrockClient = createNewClient();
+            bindAllListeners(bedrockClient);
+        } catch (err) {
+            console.error(chalk.red("[BEDROCK] Reconnect failed:"), err);
+        } finally {
+            reconnecting = false;
+        }
+    }, 5000);
+}
+
+// ─────────────────────────────────────────────
+// Shared commands
+// ─────────────────────────────────────────────
 export function runCMD(cmd: string) {
     bedrockClient.queue("command_request", {
         command: cmd,
@@ -59,7 +104,6 @@ export function runText(message: string) {
     });
 }
 
-// optional getter (useful later)
 export function getBedrockClient(): Client {
     return bedrockClient;
 }

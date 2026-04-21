@@ -4,6 +4,7 @@ import config from "../config.js";
 import { autoCorrect, correction } from "../functions/correction.js";
 import { createEmbed } from "../functions/embedBuilder.js";
 import chalk from "chalk";
+import { censorMessage } from "../profanity/profanity_filter.js";
 
 export function setupChatMessageListener(bedrockClient: Client, channelId: TextChannel) {
     console.log(chalk.cyan("Chat Message Listener initialized."));
@@ -26,13 +27,18 @@ export function setupChatMessageListener(bedrockClient: Client, channelId: TextC
             }
 
             // Known AntiCheat / help / command messages to ignore
-            const ignoredPrefixes = ["§2[§7Available Commands§2]§r", "§2[§7Paradox§2]§o§7"];
+            const ignoredPrefixes = ["§2[§7Available Commands§2]§r", "§2[§7Paradox§2]§o§7", "?link:"];
 
             if (ignoredPrefixes.some((prefix) => text.includes(prefix))) {
                 return;
             }
 
-            sendToDiscord(channelId, `[In Game] ${autoCorrect(text, correction)}`);
+            //sendToDiscord(channelId, `[In Game] ${autoCorrect(text, correction)}`);
+            const corrected = autoCorrect(text, correction);
+            let profanityFilterEnabled = config.profanityFilter;
+            const clean = profanityFilterEnabled ? censorMessage(corrected) : corrected;
+
+            sendToDiscord(channelId, `[In Game] ${clean}`);
             return;
         }
 
@@ -40,7 +46,11 @@ export function setupChatMessageListener(bedrockClient: Client, channelId: TextC
         // Normal chat packets
         // ─────────────────────────────────────────────
         if (packet.type === "chat") {
-            sendToDiscord(channelId, `[In Game] **${packet.source_name}**: ${packet.message}`);
+            //sendToDiscord(channelId, `[In Game] **${packet.source_name}**: ${packet.message}`);
+            let profanityFilterEnabled = config.profanityFilter;
+            const clean = profanityFilterEnabled ? censorMessage(packet.message) : packet.message;
+
+            sendToDiscord(channelId, `[In Game] **${packet.source_name}**: ${clean}`);
         }
     });
 }

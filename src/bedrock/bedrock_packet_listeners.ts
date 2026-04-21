@@ -1,6 +1,7 @@
 import { Client } from "bedrock-protocol";
 import chalk from "chalk";
 import config from "../config.js";
+import { reconnectBedrock } from "./bedrock.js";
 let clientPermissionLevel: string;
 let clientGamemode: string;
 
@@ -11,6 +12,7 @@ export function registerBedrockListeners(bedrockClient: Client) {
 
     bedrockClient.on("disconnect", (packet) => {
         console.log(chalk.red("Disconnected from server: " + JSON.stringify(packet, null, 2)));
+        reconnectBedrock();
     });
     bedrockClient.on("spawn", (packet) => {
         console.log(chalk.green("Successfully connected to the server and spawned in as " + config.username));

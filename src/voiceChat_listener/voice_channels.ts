@@ -37,18 +37,33 @@ function parsePacket(packet: WhisperPacket | ChatPacket | JsonPacket): {
 
     if (packet.type === "chat") {
         message = packet.message;
-        requester = packet.source_name;
+        requester = packet.source_name ?? "";
     }
 
     if (packet.type === "json_whisper") {
-        const obj = JSON.parse(packet.message);
-        const text = obj.rawtext[0].text;
+        let obj: any;
+
+        try {
+            obj = JSON.parse(packet.message);
+        } catch {
+            return null; // invalid JSON
+        }
+
+        const text: unknown = obj?.rawtext?.[0]?.text;
+
+        if (typeof text !== "string") return null;
 
         const nameMatch = text.match(/§7(.*?)§r/);
         requester = nameMatch?.[1]?.replace(":", "").trim() ?? "";
 
-        message = text.split("§r")[1] ?? "";
+        const parts = text.split("§r");
+        if (parts.length < 2) return null;
+
+        message = parts[1].trim();
     }
+
+    //Final safety check
+    if (typeof message !== "string") return null;
 
     if (!message.startsWith(config.voiceChannelCommandPrefix)) return null;
 
