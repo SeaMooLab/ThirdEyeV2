@@ -28,4 +28,8 @@ export function registerBedrockListeners(bedrockClient: Client) {
             console.log(chalk.blue(`Received text packet: ${JSON.stringify(packet, null, 2)}`));
         }
     });
+    bedrockClient.on("close", (packet) => {
+        console.log(chalk.red("The connection to the server was closed: " + JSON.stringify(packet, null, 2)));
+        reconnectBedrock();
+    });
 }
