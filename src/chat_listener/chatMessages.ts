@@ -18,30 +18,41 @@ export function setupChatMessageListener(bedrockClient: Client, channelId: TextC
         // JSON chat packets (Paradox / Scythe)
         // ─────────────────────────────────────────────
         if (packet.type === "json") {
-            const obj = JSON.parse(packet.message);
-            const text = obj?.rawtext?.[0]?.text;
-
-            // Ignore invalid / command / empty / Discord loop messages
-            if (!text || obj.rawtext?.[0]?.translate || text.includes("Discord")) {
+            let obj;
+            try {
+                obj = JSON.parse(packet.message);
+            } catch {
                 return;
             }
 
-            // Known AntiCheat / help / command messages to ignore
+            const raw = obj?.rawtext;
+            if (!Array.isArray(raw)) return;
+
+            // Block ANY translate-based messages (like weather, time, etc.)
+            if (raw.some((e) => e.translate)) {
+                return;
+            }
+
+            // Combine all text parts into one string
+            const text = raw.map((e) => e.text || "").join("");
+
+            // Ignore invalid / empty / Discord loop messages
+            if (!text || text.includes("Discord")) {
+                return;
+            }
+
             const ignoredPrefixes = ["§2[§7Available Commands§2]§r", "§2[§7Paradox§2]§o§7", "?link:"];
 
             if (ignoredPrefixes.some((prefix) => text.includes(prefix))) {
                 return;
             }
 
-            //sendToDiscord(channelId, `[In Game] ${autoCorrect(text, correction)}`);
             const corrected = autoCorrect(text, correction);
-            let profanityFilterEnabled = config.profanityFilter;
-            const clean = profanityFilterEnabled ? censorMessage(corrected) : corrected;
+            const clean = config.profanityFilter ? censorMessage(corrected) : corrected;
 
             sendToDiscord(channelId, `[In Game] ${clean}`);
             return;
         }
-
         // ─────────────────────────────────────────────
         // Normal chat packets
         // ─────────────────────────────────────────────

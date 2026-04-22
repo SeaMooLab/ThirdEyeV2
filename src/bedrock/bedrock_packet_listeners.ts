@@ -22,4 +22,10 @@ export function registerBedrockListeners(bedrockClient: Client) {
         clientGamemode = packet.player_gamemode.toString();
         console.log(chalk.yellow(`Client Permission Level: ${clientPermissionLevel}, Client Gamemode: ${clientGamemode}`));
     });
+
+    bedrockClient.on("text", (packet) => {
+        if (config.debug) {
+            console.log(chalk.blue(`Received text packet: ${JSON.stringify(packet, null, 2)}`));
+        }
+    });
 }
