@@ -54,20 +54,39 @@ export function reconnectBedrock() {
     console.log(chalk.cyan("[BEDROCK] Reconnecting in 5 seconds..."));
 
     setTimeout(() => {
-        try {
-            if (bedrockClient) {
-                bedrockClient.close();
+        console.log(chalk.cyan("[BEDROCK] Reconnecting now..."));
+
+        const client = createNewClient();
+
+        let handled = false;
+
+        const retry = (err?: any) => {
+            if (handled) return;
+            handled = true;
+
+            if (err?.name === "RakTimeout") {
+                console.log(chalk.yellow("[BEDROCK] Ping timeout, retrying..."));
+            } else if (err) {
+                console.log(chalk.red("[BEDROCK] Reconnect failed:"), err);
             }
 
-            console.log(chalk.cyan("[BEDROCK] Reconnecting now..."));
-
-            bedrockClient = createNewClient();
-            bindAllListeners(bedrockClient);
-        } catch (err) {
-            console.error(chalk.red("[BEDROCK] Reconnect failed:"), err);
-        } finally {
             reconnecting = false;
-        }
+            reconnectBedrock();
+        };
+
+        client.once("spawn", () => {
+            handled = true;
+
+            console.log(chalk.green("[BEDROCK] Reconnected successfully"));
+
+            bedrockClient = client;
+            bindAllListeners(bedrockClient);
+
+            reconnecting = false;
+        });
+
+        client.once("error", retry);
+        client.once("close", retry);
     }, 5000);
 }
 
