@@ -1,1 +1,1 @@
-npm update discord.js && npm update bedrock-protocol && npm update minecraft-data && PAUSE
+npm update discord.js && npm update bedrock-protocol && npm update minecraft-data && npm update chalk && PAUSE
