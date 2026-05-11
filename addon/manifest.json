@@ -1,0 +1,37 @@
+{
+    "format_version": 2,
+    "header": {
+        "name": "ThirdEye v1.0.0",
+        "description": "ThirdEye is a Minecraft Bedrock Edition addon that provides two-way chat between Discord and Minecraft, along with logs for Anticheats.",
+        "uuid": "1dae56c3-c664-4d63-b768-4bdde0de0a32",
+        "version": [1, 0, 0],
+        "min_engine_version": [1, 21, 50]
+    },
+    "metadata": {
+        "authors": ["Pete9xi"],
+        "license": "GPLv3",
+        "url": "https://github.com/Pete9xi/Luminous-Arrows"
+    },
+    "modules": [
+        {
+            "type": "data",
+            "uuid": "a44581c2-12dd-4548-8153-6442d21574ed",
+            "version": [1, 0, 0]
+        },
+        {
+            "description": "ThirdEye Behaviour Pack",
+            "language": "javascript",
+            "type": "script",
+            "uuid": "b5c00cba-9374-4070-bce6-175f0088960f",
+            "version": [0, 0, 1],
+            "entry": "scripts/thirdeye.js"
+        }
+    ],
+    "dependencies": [
+        {
+            "module_name": "@minecraft/server",
+            "version": "2.6.0"
+        }
+    ],
+    "capabilities": ["script_eval"]
+}

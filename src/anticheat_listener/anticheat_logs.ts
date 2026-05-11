@@ -1,23 +1,16 @@
-import { EmbedBuilder, MessageCreateOptions, MessagePayload, TextChannel } from "discord.js";
+import { MessageCreateOptions, MessagePayload, TextChannel } from "discord.js";
 import config from "../config.js";
-import { autoCorrect } from "../main.js";
-import { correction } from "../main.js";
+import { autoCorrect, correction } from "../functions/correction.js";
 import { Client } from "bedrock-protocol";
+import { createEmbed } from "../functions/embedBuilder.js";
+import chalk from "chalk";
 let thumbUrl: string;
-export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
-    bot.on("text", (packet: WhisperPacket | ChatPacket) => {
+export function setupAntiCheatListener(bedrockClient: Client, channelId: TextChannel) {
+    console.log(chalk.cyan("AntiCheat Listener initialized."));
+    bedrockClient.on("text", (packet: WhisperPacket | ChatPacket) => {
         const message = packet.message;
 
-        const isAntiCheatMessage =
-            message.includes("§r§4[§6Paradox§4]§r") ||
-            message.includes("§r§6[§aScythe§6]§r") ||
-            message.includes("§l§6[§4Paradox§6]§r") ||
-            message.includes("§l§6[§4Paradox AntiCheat Command Help§6]") ||
-            message.includes("§2[§7Available Commands§2]§r") ||
-            message.includes("§2[§7Paradox§2]§o§7") ||
-            message.includes("§f§o§4[§6Paradox§4]§f§o") ||
-            message.includes("§f§4[§6Paradox§4]§f") ||
-            message.includes("§l§o§6[§4Paradox AntiCheat Command Help§6]§r§o");
+        const isAntiCheatMessage = message.includes("§2[§7Available Commands§2]§r") || message.includes("§2[§7Paradox§2]§o§7");
 
         if (!isAntiCheatMessage) {
             return;
@@ -26,19 +19,7 @@ export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
         const rawText = obj.rawtext[0]?.text || "";
         let antiCheatMsg;
         let correctedText;
-        if (
-            rawText.includes("§r§4[§6Paradox§4]§r") ||
-            rawText.includes("§l§6[§4Paradox§6]§r") ||
-            rawText.includes("§l§6[§4Paradox AntiCheat Command Help§6]") ||
-            rawText.includes("§2[§7Available Commands§2]§r") ||
-            rawText.includes("§2[§7Paradox§2]§o§7") ||
-            rawText.includes("§f§o§4[§6Paradox§4]§f§o") ||
-            rawText.includes("§f§4[§6Paradox§4]§f") ||
-            rawText.includes("§l§o§6[§4Paradox AntiCheat Command Help§6]§r§o")
-        ) {
-            antiCheatMsg = rawText;
-            correctedText = autoCorrect(antiCheatMsg, correction);
-        } else if (rawText.startsWith("§r§6[§aScythe§6]§r")) {
+        if (rawText.includes("§2[§7Available Commands§2]§r") || rawText.includes("§2[§7Paradox§2]§o§7")) {
             antiCheatMsg = rawText;
             correctedText = autoCorrect(antiCheatMsg, correction);
         }
@@ -60,12 +41,13 @@ export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
                     const messages = [moderationMessage, optionalFeaturesMessage, toolsUtilitiesMessage];
 
                     messages.forEach((msg) => {
-                        const embed = new EmbedBuilder()
-                            .setColor(config.setColor)
-                            .setTitle(config.setTitle)
-                            .setDescription("[In Game] " + msg)
-                            .setAuthor({ name: "‎", iconURL: config.logoURL })
-                            .setThumbnail(thumbUrl);
+                        const embed = createEmbed({
+                            title: config.setTitle,
+                            description: "[In Game] " + msg,
+                            color: config.setColor,
+                            author: { name: "‎", iconURL: config.logoURL },
+                            thumbnailUrl: thumbUrl,
+                        });
 
                         if (typeof channelId === "object") {
                             channelId.send({ embeds: [embed] });
@@ -99,12 +81,13 @@ export function setupAntiCheatListener(bot: Client, channelId: TextChannel) {
                         break;
                 }
 
-                const embed = new EmbedBuilder()
-                    .setColor(config.setColor)
-                    .setTitle(config.setTitle)
-                    .setDescription("[In Game] " + correctedText)
-                    .setAuthor({ name: "‎", iconURL: config.logoURL })
-                    .setThumbnail(thumbUrl);
+                const embed = createEmbed({
+                    title: config.setTitle,
+                    description: "[In Game] " + correctedText,
+                    color: config.setColor,
+                    author: { name: "‎", iconURL: config.logoURL },
+                    thumbnailUrl: thumbUrl,
+                });
 
                 sendToChannel(channelId, { embeds: [embed] }, "I could not find the in-game channel in Discord. 2");
             } else {

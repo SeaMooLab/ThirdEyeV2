@@ -1,1 +1,1 @@
-npm install discord.js && npm install bedrock-protocol && PAUSE
+npm install discord.js && npm install bedrock-protocol && npm install minecraft-data && npm install chalk && PAUSE
