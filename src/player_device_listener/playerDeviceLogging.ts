@@ -5,6 +5,7 @@ import config from "../config.js";
 import { runCMD } from "../bedrock/bedrock.js";
 import chalk from "chalk";
 import { createEmbed } from "../functions/embedBuilder.js";
+import { onPlayerJoin, onPlayerLeave } from "../stores/player_sessions.js";
 
 // ----------------------------
 // Config
@@ -118,6 +119,7 @@ export function addPlayerListener(bedrockClient: Client, channelId: TextChannel,
            */
             if (config.useSystemPlayerJoinMessage === true) {
                 const msg = packet.parameters + ": Has joined the server.";
+                onPlayerJoin(packet.parameters);
                 const username = "Server";
                 if (config.useEmbed === true) {
                     const embed = createEmbed({
@@ -155,6 +157,7 @@ export function addPlayerListener(bedrockClient: Client, channelId: TextChannel,
         const username = Array.isArray(packet.parameters) ? packet.parameters[0] : packet.parameters;
 
         const msg = `${username}: Has left the server.`;
+        onPlayerLeave(username);
 
         // Remove from reported players
         console.log(chalk.bgYellowBright("[debug]: reportedPlayers Before remove:", JSON.stringify(reportedPlayers)));
