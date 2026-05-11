@@ -1,0 +1,56 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build project
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then npm ci; else npm install; fi
+
+      - name: Type-check TypeScript
+        run: npx tsc -p tsconfig.json --noEmit
+
+      - name: Run tests if present
+        run: npm run test --if-present
+
+      - name: Build project
+        run: npm run build
+
+      - name: Verify build folder
+        run: test -d build && find build -mindepth 1 -print -quit | grep -q .
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: thirdeye-build-${{ github.sha }}
+          path: build/
+          if-no-files-found: error
+          retention-days: 30
