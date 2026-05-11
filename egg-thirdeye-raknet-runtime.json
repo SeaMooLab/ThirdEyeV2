@@ -1,0 +1,51 @@
+{
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-05-11T23:05:35Z",
+    "name": "ThirdEye RakNet Runtime",
+    "author": "85457381+DJStompZone@users.noreply.github.com",
+    "description": "Builds ThirdEye with npm run build, copies only the generated build directory into the server, installs production dependencies from inside that build directory, and runs Run.sh.",
+    "features": null,
+    "docker_images": {
+        "DJStomp Node.js 20 RakNet": "djstomp/nodejs20-raknet:latest"
+    },
+    "file_denylist": [],
+    "startup": "cd /home/container && if [ ! -d node_modules ]; then bash ./Install_NodeJS_Modules.sh; fi; bash ./Run.sh",
+    "config": {
+        "files": "{}",
+        "startup": "{\"done\": \"ThirdEye\"}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\nset -euo pipefail\n\napt-get update\napt-get install -y ca-certificates git\n\nmkdir -p /mnt/server\ncd /tmp\n\nrm -rf thirdeye-src\ngit clone --depth 1 --branch \"${BRANCH}\" \"${GIT_ADDRESS}\" thirdeye-src\n\ncd thirdeye-src\n\nif [[ -f package-lock.json || -f npm-shrinkwrap.json ]]; then\n    npm ci || npm install\nelse\n    npm install\nfi\n\nnpm run build\n\nif [[ ! -f build/Install_NodeJS_Modules.sh ]]; then\n    cat > build/Install_NodeJS_Modules.sh <<'THIRDEYE_INSTALL_EOF'\n#!/usr/bin/env bash\nset -euo pipefail\n\nscript_dir=\"$(CDPATH= cd -- \"$(dirname -- \"$0\")\" && pwd)\"\ncd \"$script_dir\"\n\nif [[ -f package-lock.json || -f npm-shrinkwrap.json ]]; then\n    npm ci --omit=dev || npm install --omit=dev\nelse\n    npm install --omit=dev\nfi\nTHIRDEYE_INSTALL_EOF\nfi\n\nif [[ ! -f build/Run.sh ]]; then\n    cat > build/Run.sh <<'THIRDEYE_RUN_EOF'\n#!/usr/bin/env bash\nset -euo pipefail\n\nscript_dir=\"$(CDPATH= cd -- \"$(dirname -- \"$0\")\" && pwd)\"\ncd \"$script_dir\"\n\nif [[ ! -d node_modules ]]; then\n    bash ./Install_NodeJS_Modules.sh\nfi\n\nif node -e \"const p = require('./package.json'); process.exit(p.scripts && p.scripts.start ? 0 : 1)\" 2>/dev/null; then\n    exec npm start\nfi\n\nexec node \"${MAIN_FILE:-index.js}\"\nTHIRDEYE_RUN_EOF\nfi\n\nrm -rf /mnt/server/*\ncp -R build/. /mnt/server/\n\ncd /mnt/server\nbash ./Install_NodeJS_Modules.sh\nnpm cache clean --force\n",
+            "container": "djstomp/nodejs20-raknet:latest",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Git Repository",
+            "description": "Git repository to clone and build.",
+            "env_variable": "GIT_ADDRESS",
+            "default_value": "https://github.com/DJStompZone/thirdeye.git",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Git Branch",
+            "description": "Branch, tag, or ref to build.",
+            "env_variable": "BRANCH",
+            "default_value": "main",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:128",
+            "field_type": "text"
+        }
+    ]
+}

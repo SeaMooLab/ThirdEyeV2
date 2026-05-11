@@ -1,0 +1,13 @@
+"scripts": {
+    "format": "npx prettier --write --ignore-path .prettierignore ./",
+    "linux//": " --- BUILD (Linux) --- ",
+    "clean": "rm -rf build/",
+    "mkDirs": "mkdir -p build",
+    "copy:assets": "cp -R src/Install_NodeJS_Modules.bat src/Install_NodeJS_Modules.sh src/Run.bat src/Run.sh src/whitelist.json package.json LICENSE README.md build/ && if [ -f package-lock.json ]; then cp package-lock.json build/; fi && if [ -f npm-shrinkwrap.json ]; then cp npm-shrinkwrap.json build/; fi",
+    "build": "npm run clean && npm run mkDirs && ./node_modules/typescript/bin/tsc -p tsconfig.json && npm run copy:assets && node modify-package.js",
+    "windows//": " --- BUILD (Windows) --- ",
+    "clean_win": "rd /s /q build>nul 2>&1|echo.>nul",
+    "mkdir_win": "@if exist build (rd /s /q build && mkdir build) else (mkdir build)",
+    "copy_assets_win": "@powershell Copy-Item -Path ^(\"src\\Install_NodeJS_Modules.bat\",\"src\\Install_NodeJS_Modules.sh\",\"src\\Run.bat\",\"src\\Run.sh\",\"src\\whitelist.json\",\"package.json\",\"LICENSE\",\"README.md\"^) -Destination \"build\" -Recurse; if (Test-Path package-lock.json) { Copy-Item package-lock.json -Destination \"build\" }; if (Test-Path npm-shrinkwrap.json) { Copy-Item npm-shrinkwrap.json -Destination \"build\" }",
+    "build_win": "npm run clean_win && npm run mkdir_win 1>nul && node node_modules\\typescript\\bin\\tsc -p tsconfig.json && npm run copy_assets_win 1>nul && node modify-package.js"
+}

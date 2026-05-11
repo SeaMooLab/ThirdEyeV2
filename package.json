@@ -6,11 +6,8 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/node": "25.0.3    ",
-    "bedrock-protocol": "^3.56.0",
+    "@types/node": "25.0.3",
     "discord-api-types": "0.38.37",
-    "discord.js": "14.25.1",
-    "minecraft-data": "^3.110.0",
     "prettier": "3.7.4",
     "typescript": "5.9.2"
   },
@@ -26,13 +23,13 @@
     "linux//": " --- BUILD (Linux) --- ",
     "clean": "rm -rf build/",
     "mkDirs": "mkdir -p build",
-    "copy:assets": "cp -R src/Install_NodeJS_Modules.bat src/Run.bat src/whitelist.json package.json LICENSE README.md build",
-    "build": "npm run clean && npm run mkDirs && ./node_modules/typescript/bin/tsc -p tsconfig.json && npm run copy:assets && node modify-package.js",
+    "copy:assets": "cp -R src/Install_NodeJS_Modules.bat src/Install_NodeJS_Modules.sh src/Run.bat src/Run.sh src/whitelist.json package.json LICENSE README.md build/ && mkdir -p build/profanity && cp -R src/profanity/. build/profanity/ && if [ -f package-lock.json ]; then cp package-lock.json build/; fi && if [ -f npm-shrinkwrap.json ]; then cp npm-shrinkwrap.json build/; fi",
+    "build": "npm run clean && npm run mkDirs && node node_modules/typescript/bin/tsc -p tsconfig.json && npm run copy:assets && node modify-package.js",
     "windows//": " --- BUILD (Windows) --- ",
-    "clean_win": "rd /s /q build>nul 2>&1|echo.>nul",
-    "mkdir_win": "@if exist build (rd /s /q build && mkdir build) else (mkdir build)",
-    "copy_assets_win": "@powershell Copy-Item -Path ^(\\\"src\\Install_NodeJS_Modules.bat\\\",\\\"src\\Run.bat\\\",\\\"src\\whitelist.json\\\",\\\"package.json\\\",\\\"LICENSE\\\",\\\"README.md\\\"^) -Destination \"build\" -Recurse",
-    "build_win": "npm run clean_win && npm run mkdir_win 1>nul && node node_modules\\typescript\\bin\\tsc -p tsconfig.json && npm run copy_assets_win 1>nul && node modify-package.js"
+    "clean_win": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (Test-Path 'build') { Remove-Item 'build' -Recurse -Force }\"",
+    "mkdir_win": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"New-Item -ItemType Directory -Path 'build' -Force | Out-Null\"",
+    "copy_assets_win": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Copy-Item -Path 'src/Install_NodeJS_Modules.bat','src/Install_NodeJS_Modules.sh','src/Run.bat','src/Run.sh','src/whitelist.json','package.json','LICENSE','README.md' -Destination 'build' -Recurse -Force; New-Item -ItemType Directory -Path 'build/profanity' -Force | Out-Null; Copy-Item -Path 'src/profanity/*' -Destination 'build/profanity' -Recurse -Force; if (Test-Path 'package-lock.json') { Copy-Item 'package-lock.json' -Destination 'build' -Force }; if (Test-Path 'npm-shrinkwrap.json') { Copy-Item 'npm-shrinkwrap.json' -Destination 'build' -Force }\"",
+    "build_win": "npm run clean_win && npm run mkdir_win && node node_modules\\typescript\\bin\\tsc -p tsconfig.json && npm run copy_assets_win && node modify-package.js"
   },
   "dependencies": {
     "bedrock-protocol": "^3.56.0",

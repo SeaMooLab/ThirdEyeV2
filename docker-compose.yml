@@ -1,0 +1,13 @@
+services:
+  thirdeye:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: thirdeye:raknet
+    pull_policy: build
+    container_name: thirdeye
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      MAIN_FILE: index.js
+      TZ: Etc/UTC
